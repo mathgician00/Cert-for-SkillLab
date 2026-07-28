@@ -12,6 +12,8 @@ export function getGoogleClients(accessToken: string) {
 }
 
 export function getServiceAccountSheetsClient() {
+  console.log('Key starts with:', process.env.GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY?.slice(0, 40));
+  console.log('Contains literal backslash-n:', process.env.GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY?.includes('\\n'));
   const auth = new google.auth.JWT({
     email: process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
     key: process.env.GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY?.replace(/\\n/g, '\n'),
