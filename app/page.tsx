@@ -255,9 +255,9 @@ export default function App() {
               <UserIcon className="w-8 h-8" />
             </div>
             <div>
-              <h2 className="text-2xl font-bold text-slate-800 mb-2">Connect Google Workspace</h2>
+              <h2 className="text-2xl font-bold text-slate-800 mb-2">Use Branch Google Account</h2>
               <p className="text-sm text-slate-500 max-w-sm mx-auto leading-relaxed">
-                Sign in to allow the app to securely access your Drive, Sheets, and Slides to generate certificates.
+                Sign in to generate certificates, recaped and saved automatically to your Google Drive.
               </p>
             </div>
             <button
@@ -356,8 +356,8 @@ export default function App() {
                   <div className="bg-emerald-50 border border-emerald-100 p-6 rounded-xl flex items-center gap-4 shadow-sm">
                     <CheckCircle2 className="w-8 h-8 text-emerald-600 shrink-0" />
                     <div>
-                      <h3 className="font-semibold text-emerald-900 text-lg">All caught up!</h3>
-                      <p className="text-sm text-emerald-700 mt-1">There are no rows in the Recap Sheet missing a certificate link.</p>
+                      <h3 className="font-semibold text-emerald-900 text-lg">All caught up! Ccertificates for your participants are ready.</h3>
+                      <p className="text-sm text-emerald-700 mt-1">Refresh if new participants just added.</p>
                     </div>
                   </div>
                 ) : (
