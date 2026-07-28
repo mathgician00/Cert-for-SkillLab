@@ -58,7 +58,7 @@ export async function POST(req: NextRequest) {
     // Read the recap sheet
     const sheetData = await sheets.spreadsheets.values.get({
       spreadsheetId: recapSpreadsheetId,
-      range: '01. Recap', // Ensure this tab exists
+      range: "'01. Recap'", // Ensure this tab exists
     });
 
     const rows = sheetData.data.values;
