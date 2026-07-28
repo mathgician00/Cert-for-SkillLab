@@ -119,7 +119,7 @@ export async function POST(req: NextRequest) {
         await drive.files.update({ fileId: newSlideId, requestBody: { trashed: true } });
 
         recapUpdates.push({
-          range: `01. Recap!${row.linkColLetter}${row.rowIndex}`,
+          range: `'01. Recap'!${row.linkColLetter}${row.rowIndex}`,
           values: [[pdfLink]]
         });
 
