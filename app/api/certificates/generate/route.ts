@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getGoogleClients, getOrCreateFolder } from '@/lib/google-api';
+import { getGoogleClients, getOrCreateFolder, getServiceAccountSheetsClient } from '@/lib/google-api';
 
 const PARENT_FOLDER_NAME = 'SkillLab Certificate';
 
