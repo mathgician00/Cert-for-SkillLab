@@ -21,15 +21,17 @@ export async function POST(req: NextRequest) {
     } else {
       const templateId = process.env.TEMPLATE_SHEET_ID;
       if (!templateId) return NextResponse.json({ error: 'TEMPLATE_SHEET_ID not set.' }, { status: 500 });
-
-      // Find or create Recap Sheet
-      const q = `name contains 'Recap SkillLab @' and mimeType='application/vnd.google-apps.spreadsheet' and trashed=false`;
+    
+      // Resolve folder FIRST, so search can be scoped to it
+      const rootFolderId = await getOrCreateFolder(drive, PARENT_FOLDER_NAME);
+    
+      // Find or create Recap Sheet, scoped to the folder only
+      const q = `name contains 'Recap SkillLab @' and mimeType='application/vnd.google-apps.spreadsheet' and trashed=false and '${rootFolderId}' in parents`;
       const res = await drive.files.list({ q, spaces: 'drive', fields: 'files(id, name, modifiedTime)', orderBy: 'modifiedTime desc' });
       
       if (res.data.files && res.data.files.length > 0) {
         recapSpreadsheetId = res.data.files[0].id!;
       } else {
-        const rootFolderId = await getOrCreateFolder(drive, PARENT_FOLDER_NAME);
         const copyRes = await drive.files.copy({
           fileId: templateId,
           requestBody: {
@@ -38,7 +40,7 @@ export async function POST(req: NextRequest) {
           }
         });
         recapSpreadsheetId = copyRes.data.id!;
-
+    
         // Share the copy
         await drive.permissions.create({
           fileId: recapSpreadsheetId,
