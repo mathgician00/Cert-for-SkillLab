@@ -11,6 +11,15 @@ export function getGoogleClients(accessToken: string) {
   return { drive, sheets, slides };
 }
 
+export function getServiceAccountSheetsClient() {
+  const auth = new google.auth.JWT({
+    email: process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
+    key: process.env.GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY?.replace(/\\n/g, '\n'),
+    scopes: ['https://www.googleapis.com/auth/spreadsheets'],
+  });
+  return google.sheets({ version: 'v4', auth });
+}
+
 export async function getOrCreateFolder(drive: any, folderName: string, parentId?: string) {
   const q = `name='${folderName}' and mimeType='application/vnd.google-apps.folder' and trashed=false${parentId ? ` and '${parentId}' in parents` : ''}`;
   const res = await drive.files.list({ q, spaces: 'drive', fields: 'files(id, name)' });
