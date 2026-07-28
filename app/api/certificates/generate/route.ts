@@ -141,19 +141,13 @@ export async function POST(req: NextRequest) {
     }
 
     // Log to Master Sheet
-    if (logEntries.length > 0) {
-      try {
-        await sheets.spreadsheets.values.append({
-          spreadsheetId: masterId,
-          range: 'CertLog',
-          valueInputOption: 'USER_ENTERED',
-          requestBody: { values: logEntries }
-        });
-      } catch (e) {
-        // Ignore if CertLog doesn't exist
-        console.error('Failed to log to CertLog', e);
-      }
-    }
+    const logSheets = getServiceAccountSheetsClient();
+    await logSheets.spreadsheets.values.append({
+      spreadsheetId: masterId,
+      range: 'CertLog',
+      valueInputOption: 'USER_ENTERED',
+      requestBody: { values: logEntries }
+    });
 
     return NextResponse.json({ results });
   } catch (error: any) {
