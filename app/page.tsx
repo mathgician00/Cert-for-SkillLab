@@ -209,7 +209,7 @@ export default function App() {
     <div className="min-h-screen bg-slate-50 font-sans text-slate-900 flex flex-col overflow-x-hidden">
       <header className="flex items-center justify-between px-8 py-5 bg-white border-b border-slate-200">
         <div className="flex items-center gap-3">
-          <img src="/logo.png" alt="SkillLab Logo" className="h-8 w-auto object-contain" />
+          <img src="public/logo_SkillLab.png" alt="SkillLab Logo" className="h-8 w-auto object-contain" />
           <h1 className="text-xl font-semibold tracking-tight text-slate-800 hidden sm:block">Certificate Generator <span className="text-xs font-normal text-slate-400 ml-2">SkillLab</span></h1>
         </div>
         {user && (
