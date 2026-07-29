@@ -126,7 +126,7 @@ export default function App() {
     if (pendingRows.length === 0) return;
     
     // Explicit User Confirmation per Guidelines
-    const confirmMessage = `Are you sure you want to generate and save certificates for ${pendingRows.length} student(s) to Google Drive, and update the recap sheet?`;
+    const confirmMessage = `Please ensure the capitalization for ${pendingRows.length} student(s) for the certificates are correct. This will appear as inputted in the sheet.`;
     if (!window.confirm(confirmMessage)) return;
 
     setGenerating(true);
