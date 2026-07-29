@@ -126,7 +126,7 @@ export default function App() {
     if (pendingRows.length === 0) return;
     
     // Explicit User Confirmation per Guidelines
-    const confirmMessage = `Please ensure the capitalization for ${pendingRows.length} student(s) for the certificates are correct. This will appear as inputted in the sheet.`;
+    const confirmMessage = `Certificates for ${pendingRows.length} student(s) will be generated. Ensure correct capitalization; will appear as inputted in the sheet.`;
     if (!window.confirm(confirmMessage)) return;
 
     setGenerating(true);
@@ -258,7 +258,7 @@ export default function App() {
             <div>
               <h2 className="text-2xl font-bold text-slate-800 mb-2">Use Branch Google Account</h2>
               <p className="text-sm text-slate-500 max-w-sm mx-auto leading-relaxed">
-                Sign in to generate certificates, recaped and saved automatically to your Google Drive.
+                Sign in to generate certificates. Recaped and saved automatically to your Google Drive.
               </p>
             </div>
             <button
@@ -290,7 +290,7 @@ export default function App() {
                 <div>
                   <h2 className="text-2xl font-bold text-slate-800 mb-2">Check Recap Sheet</h2>
                   <p className="text-sm text-slate-500 max-w-sm mx-auto leading-relaxed">
-                    We will scan your Drive for a Recap Sheet and find any rows that need certificates generated.
+                    We will scan your Drive for a Recap Sheet and display participants that need certificates generated.
                   </p>
                 </div>
                 
@@ -338,7 +338,7 @@ export default function App() {
               <>
                 <div className="flex items-center justify-between mb-2">
                    <div>
-                     <h2 className="text-lg font-semibold text-slate-800">Recap Sheet Loaded</h2>
+                     <h2 className="text-lg font-semibold text-slate-800">SkillLab Certificates</h2>
                      {sheetUrl && (
                        <a href={sheetUrl} target="_blank" rel="noreferrer" className="text-xs text-indigo-600 hover:text-indigo-700 transition-colors inline-flex items-center mt-1">
                          Open in Google Sheets ↗
@@ -358,7 +358,7 @@ export default function App() {
                     <CheckCircle2 className="w-8 h-8 text-emerald-600 shrink-0" />
                     <div>
                       <h3 className="font-semibold text-emerald-900 text-lg">All caught up! Ccertificates for your participants are ready.</h3>
-                      <p className="text-sm text-emerald-700 mt-1">Refresh if new participants just added.</p>
+                      <p className="text-sm text-emerald-700 mt-1">Click reset button above if new participants just added.</p>
                     </div>
                   </div>
                 ) : (
