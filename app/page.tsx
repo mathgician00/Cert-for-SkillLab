@@ -83,6 +83,7 @@ export default function App() {
   };
 
   const checkRecapSheet = async (override?: string) => {
+    setProgress(0);
     setErrorMsg('');
     setCheckingRecap(true);
     setLogs([]);
