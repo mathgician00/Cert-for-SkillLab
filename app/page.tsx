@@ -209,9 +209,7 @@ export default function App() {
     <div className="min-h-screen bg-slate-50 font-sans text-slate-900 flex flex-col overflow-x-hidden">
       <header className="flex items-center justify-between px-8 py-5 bg-white border-b border-slate-200">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 bg-indigo-600 rounded flex items-center justify-center">
-            <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
-          </div>
+          <img src="/logo.png" alt="SkillLab Logo" className="h-8 w-auto object-contain" />
           <h1 className="text-xl font-semibold tracking-tight text-slate-800 hidden sm:block">Certificate Generator <span className="text-xs font-normal text-slate-400 ml-2">SkillLab</span></h1>
         </div>
         {user && (
@@ -357,7 +355,7 @@ export default function App() {
                   <div className="bg-emerald-50 border border-emerald-100 p-6 rounded-xl flex items-center gap-4 shadow-sm">
                     <CheckCircle2 className="w-8 h-8 text-emerald-600 shrink-0" />
                     <div>
-                      <h3 className="font-semibold text-emerald-900 text-lg">All caught up! Ccertificates for your participants are ready.</h3>
+                      <h3 className="font-semibold text-emerald-900 text-lg">All caught up! Certificates for your participants are ready.</h3>
                       <p className="text-sm text-emerald-700 mt-1">Click reset button above if new participants just added.</p>
                     </div>
                   </div>
