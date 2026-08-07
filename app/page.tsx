@@ -30,6 +30,7 @@ export default function App() {
   const [pendingRows, setPendingRows] = useState<RowData[]>([]);
   const [totalPending, setTotalPending] = useState(-1); // -1 = hasn't checked
   const [errorMsg, setErrorMsg] = useState('');
+  const [multipleFound, setMultipleFound] = useState(false);
 
   // Override URL
   const [overrideUrl, setOverrideUrl] = useState('');
@@ -81,6 +82,7 @@ export default function App() {
     setTotalPending(-1);
     setLogs([]);
     setRowStatuses({});
+    setMultipleFound(false);
   };
 
   const checkRecapSheet = async (override?: string) => {
@@ -107,6 +109,7 @@ export default function App() {
       setSheetUrl(data.url);
       setPendingRows(data.rows);
       setTotalPending(data.total);
+      setMultipleFound(!!data.multiple);
 
       const initialStatuses: any = {};
       data.rows.forEach((r: RowData) => {
@@ -339,12 +342,24 @@ export default function App() {
                      )}
                    </div>
                    <button
-                     onClick={() => { setTotalPending(-1); setSheetUrl(''); setPendingRows([]); }}
+                     onClick={() => { setTotalPending(-1); setSheetUrl(''); setPendingRows([]); setMultipleFound(false); }}
                      className="text-xs bg-slate-100 border border-slate-200 text-slate-700 px-3 py-1.5 rounded-md hover:bg-slate-200 transition-colors font-medium"
                    >
                      Reset
                    </button>
                 </div>
+
+                {multipleFound && (
+                  <div className="bg-amber-50 border border-amber-200 text-amber-800 p-3 rounded-lg text-xs flex items-center justify-between gap-3">
+                    <span>⚠️ Multiple recap sheets found in your folder — showing the most recently modified one. Not the right one?</span>
+                    <button
+                      onClick={() => { setTotalPending(-1); setSheetUrl(''); setPendingRows([]); setMultipleFound(false); setShowOverride(true); }}
+                      className="shrink-0 text-amber-900 font-semibold underline hover:no-underline"
+                    >
+                      Use a different sheet
+                    </button>
+                  </div>
+                )}
 
                 {totalPending === 0 ? (
                   <div className="bg-emerald-50 border border-emerald-100 p-6 rounded-xl flex items-center gap-4 shadow-sm">
