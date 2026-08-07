@@ -9,11 +9,13 @@ import { motion, AnimatePresence } from 'motion/react';
 type RowData = {
   rowIndex: number;
   linkColLetter: string;
+  statusColLetter: string;
   name: string;
   rawDate: string;
+  dateY: number | null;
+  dateM: number | null;
+  dateD: number | null;
   course: string;
-  displayDate?: string;
-  yymmdd?: string;
 };
 
 export default function App() {
@@ -28,7 +30,7 @@ export default function App() {
   const [pendingRows, setPendingRows] = useState<RowData[]>([]);
   const [totalPending, setTotalPending] = useState(-1); // -1 = hasn't checked
   const [errorMsg, setErrorMsg] = useState('');
-  
+
   // Override URL
   const [overrideUrl, setOverrideUrl] = useState('');
   const [showOverride, setShowOverride] = useState(false);
@@ -74,7 +76,6 @@ export default function App() {
 
   const handleLogout = async () => {
     await logout();
-    // Reset state
     setSheetUrl('');
     setPendingRows([]);
     setTotalPending(-1);
@@ -88,7 +89,7 @@ export default function App() {
     setCheckingRecap(true);
     setLogs([]);
     setRowStatuses({});
-    
+
     try {
       const token = await getAccessToken();
       const res = await fetch('/api/certificates/check-recap', {
@@ -100,20 +101,19 @@ export default function App() {
         body: JSON.stringify({ sheetUrl: override || '' })
       });
       const data = await res.json();
-      
+
       if (!res.ok) throw new Error(data.error || 'Failed to check recap sheet.');
 
       setSheetUrl(data.url);
       setPendingRows(data.rows);
       setTotalPending(data.total);
-      
-      // Initialize row statuses
+
       const initialStatuses: any = {};
       data.rows.forEach((r: RowData) => {
         initialStatuses[r.rowIndex] = 'pending';
       });
       setRowStatuses(initialStatuses);
-      
+
     } catch (err: any) {
       setErrorMsg(err.message);
     } finally {
@@ -124,8 +124,9 @@ export default function App() {
 
   const handleGenerate = async () => {
     if (pendingRows.length === 0) return;
-    
-    // Explicit User Confirmation per Guidelines
+
+    // Every row here already passed the sheet's own 'Siap cetak' formula gate
+    // in check-recap, so no client-side completeness check is needed.
     const confirmMessage = `Certificates for ${pendingRows.length} student(s) will be generated. Ensure correct capitalization; will appear as inputted in the sheet.`;
     if (!window.confirm(confirmMessage)) return;
 
@@ -136,14 +137,13 @@ export default function App() {
 
     try {
       const token = await getAccessToken();
-      
-      // Process in small batches (e.g., 3 at a time) to avoid timeout/rate limits
+
       const BATCH_SIZE = 3;
       let completedCount = 0;
-      
+
       for (let i = 0; i < pendingRows.length; i += BATCH_SIZE) {
         const batch = pendingRows.slice(i, i + BATCH_SIZE);
-        
+
         batch.forEach(r => {
           setRowStatuses(prev => ({ ...prev, [r.rowIndex]: 'processing' }));
         });
@@ -160,9 +160,9 @@ export default function App() {
             userEmail: user?.email
           })
         });
-        
+
         const data = await res.json();
-        
+
         if (!res.ok) {
            batch.forEach(r => {
              setRowStatuses(prev => ({ ...prev, [r.rowIndex]: 'error' }));
@@ -182,11 +182,11 @@ export default function App() {
             setLogs(prev => [...prev, { msg: `✓ Row ${resItem.rowIndex}: Generated successfully`, type: 'ok' }]);
           }
         });
-        
+
         completedCount += batch.length;
         setProgress(Math.round((completedCount / pendingRows.length) * 100));
       }
-      
+
       setLogs(prev => [...prev, { msg: 'Generation process completed.', type: 'info' }]);
 
     } catch (err: any) {
@@ -235,11 +235,10 @@ export default function App() {
       </header>
 
       <main className="flex-1 p-8 overflow-x-hidden flex flex-col gap-8 max-w-5xl mx-auto w-full">
-        
-        {/* Error Alert */}
+
         <AnimatePresence>
           {errorMsg && (
-            <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, height: 0 }} 
+            <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, height: 0 }}
               className="bg-red-50 text-red-700 border border-red-200 p-4 rounded-lg text-sm flex gap-3 items-start">
               <XCircle className="w-5 h-5 shrink-0 mt-0.5 text-red-600" />
               <div className="leading-relaxed">{errorMsg}</div>
@@ -248,7 +247,6 @@ export default function App() {
         </AnimatePresence>
 
         {needsAuth ? (
-          // Login State
           <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="flex flex-col items-center justify-center text-center mt-12 gap-6 bg-white p-10 rounded-xl border border-slate-200 shadow-sm max-w-xl mx-auto w-full">
             <div className="w-16 h-16 bg-slate-100 text-slate-500 rounded-xl flex items-center justify-center border border-slate-200">
               <UserIcon className="w-8 h-8" />
@@ -276,10 +274,8 @@ export default function App() {
             </button>
           </motion.div>
         ) : (
-          // Authenticated State
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col gap-6">
-            
-            {/* Step 1: Check Recap Sheet */}
+
             {totalPending === -1 && (
               <div className="bg-white p-10 rounded-xl border border-slate-200 shadow-sm flex flex-col items-center text-center gap-6 max-w-xl mx-auto w-full">
                  <div className="w-16 h-16 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center border border-indigo-100">
@@ -288,22 +284,22 @@ export default function App() {
                 <div>
                   <h2 className="text-2xl font-bold text-slate-800 mb-2">Check Recap Sheet</h2>
                   <p className="text-sm text-slate-500 max-w-sm mx-auto leading-relaxed">
-                    We will scan your Drive for a Recap Sheet and display participants that need certificates generated.
+                    We will scan your Drive for a Recap Sheet and display participants marked "Siap cetak" that need certificates generated.
                   </p>
                 </div>
-                
+
                 {showOverride ? (
                    <div className="w-full max-w-md flex flex-col gap-3">
                      <label className="text-xs font-semibold text-slate-700 text-left uppercase tracking-wider">Custom Sheet URL</label>
                      <div className="flex gap-2">
-                       <input 
-                         type="text" 
-                         className="flex-1 bg-slate-50 border border-slate-300 text-slate-900 text-sm rounded-md focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full px-3 py-2" 
+                       <input
+                         type="text"
+                         className="flex-1 bg-slate-50 border border-slate-300 text-slate-900 text-sm rounded-md focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full px-3 py-2"
                          placeholder="https://docs.google.com/spreadsheets/d/..."
                          value={overrideUrl}
                          onChange={e => setOverrideUrl(e.target.value)}
                        />
-                       <button 
+                       <button
                          onClick={() => checkRecapSheet(overrideUrl)}
                          disabled={checkingRecap || !overrideUrl}
                          className="bg-slate-900 text-white hover:bg-slate-800 font-medium rounded-md text-sm px-5 py-2 disabled:opacity-50 transition-colors"
@@ -315,7 +311,7 @@ export default function App() {
                    </div>
                 ) : (
                   <div className="flex flex-col items-center gap-4">
-                    <button 
+                    <button
                       onClick={() => checkRecapSheet()}
                       disabled={checkingRecap}
                       className="bg-slate-900 text-white hover:bg-slate-800 font-medium rounded-md text-sm px-8 py-3 disabled:opacity-50 transition-colors shadow-sm flex items-center gap-2"
@@ -331,7 +327,6 @@ export default function App() {
               </div>
             )}
 
-            {/* Step 2: Show Results and Generate */}
             {totalPending !== -1 && (
               <>
                 <div className="flex items-center justify-between mb-2">
@@ -343,7 +338,7 @@ export default function App() {
                        </a>
                      )}
                    </div>
-                   <button 
+                   <button
                      onClick={() => { setTotalPending(-1); setSheetUrl(''); setPendingRows([]); }}
                      className="text-xs bg-slate-100 border border-slate-200 text-slate-700 px-3 py-1.5 rounded-md hover:bg-slate-200 transition-colors font-medium"
                    >
@@ -366,8 +361,8 @@ export default function App() {
                         <h3 className="font-semibold text-slate-700 text-sm">Pending Certificates</h3>
                         <span className="bg-indigo-50 text-indigo-600 text-[10px] font-bold px-2 py-0.5 rounded-full">{pendingRows.length} total</span>
                       </div>
-                      <button 
-                        onClick={() => checkRecapSheet(sheetUrl)} 
+                      <button
+                        onClick={() => checkRecapSheet(sheetUrl)}
                         disabled={checkingRecap || generating}
                         className="text-slate-400 hover:text-slate-600 transition-colors disabled:opacity-50"
                         title="Refresh"
@@ -375,7 +370,7 @@ export default function App() {
                         <RefreshCw className={`w-4 h-4 ${checkingRecap ? 'animate-spin' : ''}`} />
                       </button>
                     </div>
-                    
+
                     <div className="overflow-x-auto flex-1">
                       <table className="w-full text-left">
                         <thead className="text-[11px] text-slate-400 uppercase tracking-widest border-b border-slate-50 bg-slate-50/50 sticky top-0 z-10">
@@ -391,9 +386,9 @@ export default function App() {
                           {pendingRows.map((row) => (
                             <tr key={row.rowIndex} className="hover:bg-slate-50/50 transition-colors">
                               <td className="px-6 py-4 font-medium text-slate-400">{row.rowIndex}</td>
-                              <td className="px-6 py-4 text-slate-800 font-medium">{row.name || <span className="text-red-500 text-[10px] uppercase font-bold bg-red-50 px-2 py-0.5 rounded-full">Missing</span>}</td>
-                              <td className="px-6 py-4">{row.rawDate || <span className="text-red-500 text-[10px] uppercase font-bold bg-red-50 px-2 py-0.5 rounded-full">Missing</span>}</td>
-                              <td className="px-6 py-4">{row.course || <span className="text-red-500 text-[10px] uppercase font-bold bg-red-50 px-2 py-0.5 rounded-full">Missing</span>}</td>
+                              <td className="px-6 py-4 text-slate-800 font-medium">{row.name}</td>
+                              <td className="px-6 py-4">{row.rawDate}</td>
+                              <td className="px-6 py-4">{row.course}</td>
                               <td className="px-6 py-4">
                                 {rowStatuses[row.rowIndex] === 'pending' && <span className="px-2 py-0.5 bg-slate-100 text-slate-500 rounded-full text-[10px] font-bold inline-flex items-center gap-1.5"><span className="w-1 h-1 bg-slate-400 rounded-full"></span>STANDBY</span>}
                                 {rowStatuses[row.rowIndex] === 'processing' && <span className="px-2 py-0.5 bg-indigo-50 text-indigo-600 rounded-full text-[10px] font-bold inline-flex items-center gap-1.5"><span className="w-1 h-1 bg-indigo-500 rounded-full animate-pulse"></span>PROCESSING</span>}
@@ -429,7 +424,7 @@ export default function App() {
                     )}
 
                     <div className="px-6 py-4 border-t border-slate-100 bg-slate-50 flex justify-end">
-                      <button 
+                      <button
                         onClick={handleGenerate}
                         disabled={generating || progress === 100}
                         className="bg-slate-900 text-white hover:bg-slate-800 font-medium rounded-md text-sm px-5 py-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm flex items-center gap-2"
