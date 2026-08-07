@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getGoogleClients, getOrCreateFolder } from '@/lib/google-api';
+import { getGoogleClients, getOrCreateFolder, getServiceAccountSheetsClient } from '@/lib/google-api';
 
 const PARENT_FOLDER_NAME = 'SkillLab Certificate';
 
@@ -13,6 +13,7 @@ export async function POST(req: NextRequest) {
     let { sheetUrl } = await req.json().catch(() => ({ sheetUrl: '' }));
 
     let recapSpreadsheetId = '';
+    let multiple = false;
 
     if (sheetUrl) {
       const match = sheetUrl.match(/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);
@@ -27,8 +28,22 @@ export async function POST(req: NextRequest) {
       const q = `name contains 'Recap SkillLab @' and mimeType='application/vnd.google-apps.spreadsheet' and trashed=false and '${rootFolderId}' in parents`;
       const res = await drive.files.list({ q, spaces: 'drive', fields: 'files(id, name, modifiedTime)', orderBy: 'modifiedTime desc' });
 
-      if (res.data.files && res.data.files.length > 0) {
-        recapSpreadsheetId = res.data.files[0].id!;
+      const matches = res.data.files || [];
+
+      if (matches.length > 0) {
+        recapSpreadsheetId = matches[0].id!;
+        multiple = matches.length > 1;
+
+        if (multiple) {
+          // Best-effort audit log — never blocks the main flow if it fails.
+          try {
+            const authRes = await drive.about.get({ fields: 'user' });
+            const branchEmail = authRes.data.user?.emailAddress || 'unknown';
+            await logDuplicate(branchEmail, matches.length, matches.map((f: any) => f.name).join(', '));
+          } catch (logErr: any) {
+            console.error('Duplicate log failed (non-fatal):', logErr.message);
+          }
+        }
       } else {
         const copyRes = await drive.files.copy({
           fileId: templateId,
@@ -68,7 +83,8 @@ export async function POST(req: NextRequest) {
     }
 
     // UNFORMATTED_VALUE + SERIAL_NUMBER: dates come back as Sheets serial numbers,
-    // not locale-formatted strings — avoids ambiguous day/month string parsing.
+    // not locale-formatted strings — avoids ambiguous day/month string parsing,
+    // and avoids timezone drift since conversion is done with Date.UTC below.
     const sheetData = await sheets.spreadsheets.values.get({
       spreadsheetId: recapSpreadsheetId,
       range: `'${actualTab}'`,
@@ -78,7 +94,12 @@ export async function POST(req: NextRequest) {
 
     const rows = sheetData.data.values;
     if (!rows || rows.length < 2) {
-      return NextResponse.json({ url: `https://docs.google.com/spreadsheets/d/${recapSpreadsheetId}`, rows: [], total: 0 });
+      return NextResponse.json({
+        url: `https://docs.google.com/spreadsheets/d/${recapSpreadsheetId}`,
+        rows: [],
+        total: 0,
+        multiple
+      });
     }
 
     const headers = rows[0].map((h: string) => h.toString().trim().toLowerCase());
@@ -107,9 +128,9 @@ export async function POST(req: NextRequest) {
       if (status !== 'Siap cetak') continue;
       if (link !== '') continue;
 
-      const name       = row[nameIdx]   ? row[nameIdx].toString().trim()   : '';
+      const name        = row[nameIdx]   ? row[nameIdx].toString().trim()   : '';
       const rawDateCell = row[dateIdx];
-      const course     = row[courseIdx] ? row[courseIdx].toString().trim() : '';
+      const course      = row[courseIdx] ? row[courseIdx].toString().trim() : '';
 
       let dateInfo: { y: number; m: number; d: number } | null = null;
       let displayDate = '';
@@ -139,7 +160,8 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({
       url: `https://docs.google.com/spreadsheets/d/${recapSpreadsheetId}`,
       rows: pendingRows,
-      total: pendingRows.length
+      total: pendingRows.length,
+      multiple
     });
 
   } catch (error: any) {
@@ -157,4 +179,42 @@ function colLetter(col: number): string {
     col = Math.floor((col - 1) / 26);
   }
   return letter;
+}
+
+// Records to the Master sheet's Duplicates tab whenever a branch has more
+// than one "Recap SkillLab @" file in their folder — lets the admin follow
+// up and consolidate. Creates the tab on first use.
+async function logDuplicate(branchEmail: string, count: number, fileNames: string) {
+  const masterId = process.env.MASTER_SHEET_ID;
+  if (!masterId) return;
+
+  const logSheets = getServiceAccountSheetsClient();
+
+  const meta = await logSheets.spreadsheets.get({
+    spreadsheetId: masterId,
+    fields: 'sheets.properties.title'
+  });
+  const existingTab = meta.data.sheets?.find(
+    (s: any) => s.properties.title.trim().toLowerCase() === 'duplicates'
+  )?.properties.title;
+
+  if (!existingTab) {
+    await logSheets.spreadsheets.batchUpdate({
+      spreadsheetId: masterId,
+      requestBody: { requests: [{ addSheet: { properties: { title: 'Duplicates' } } }] }
+    });
+    await logSheets.spreadsheets.values.append({
+      spreadsheetId: masterId,
+      range: 'Duplicates',
+      valueInputOption: 'USER_ENTERED',
+      requestBody: { values: [['Timestamp', 'Branch Email', 'File Count', 'File Names']] }
+    });
+  }
+
+  await logSheets.spreadsheets.values.append({
+    spreadsheetId: masterId,
+    range: 'Duplicates',
+    valueInputOption: 'USER_ENTERED',
+    requestBody: { values: [[new Date().toISOString(), branchEmail, count, fileNames]] }
+  });
 }
