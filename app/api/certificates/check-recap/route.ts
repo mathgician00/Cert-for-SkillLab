@@ -74,9 +74,9 @@ export async function POST(req: NextRequest) {
       spreadsheetId: recapSpreadsheetId,
       fields: 'sheets.properties.title'
     });
-    const actualTab = meta.data.sheets?.find(
-      (s: any) => s.properties.title.trim().toLowerCase() === '01. recap'
-    )?.properties.title;
+    const actualTab = (meta.data?.sheets || []).find(
+      (s: any) => s.properties?.title?.trim().toLowerCase() === '01. recap'
+    )?.properties?.title;
 
     if (!actualTab) {
       return NextResponse.json({ error: "No tab named '01. Recap' found in this spreadsheet." }, { status: 400 });
