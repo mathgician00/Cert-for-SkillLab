@@ -136,23 +136,23 @@ export async function POST(req: NextRequest) {
           range: `'${recapTab}'!${row.linkColLetter}${row.rowIndex}`,
           values: [[pdfLink]]
         });
-        recapUpdates.push({
-          range: `'${recapTab}'!${row.statusColLetter}${row.rowIndex}`,
-          values: [['Selesai']]
-        });
-
+        
         logEntries.push([new Date().toISOString(), userEmail, sheetUrl, row.name, row.course, formattedDate, pdfLink]);
         results.push({ rowIndex: row.rowIndex, success: true, fileName: `${fileName}.pdf`, pdfLink });
 
       } catch (err: any) {
         console.error(`Row ${row.rowIndex} error:`, err);
 
-        // Mark the row as failed directly in the sheet, so the branch sees it
-        // without needing to check this app's ephemeral log panel.
+        // Write to the Link column (not Status) — Status is formula-driven
+        // off Link's string length (>=50 chars => 'Selesai'), so 'Gagal' here
+        // is short enough to never trigger that condition.
         recapUpdates.push({
-          range: `'${recapTab}'!${row.statusColLetter}${row.rowIndex}`,
+          range: `'${recapTab}'!${row.linkColLetter}${row.rowIndex}`,
           values: [['Gagal']]
         });
+
+        results.push({ rowIndex: row.rowIndex, error: err.message });
+      }
 
         results.push({ rowIndex: row.rowIndex, error: err.message });
       }
