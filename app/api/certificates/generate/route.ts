@@ -25,9 +25,9 @@ export async function POST(req: NextRequest) {
       spreadsheetId: recapSpreadsheetId,
       fields: 'sheets.properties.title'
     });
-    const recapTab = recapMeta.data.sheets?.find(
-      (s: any) => s.properties.title.trim().toLowerCase() === '01. recap'
-    )?.properties.title;
+    const recapTab = (recapMeta.data?.sheets || []).find(
+      (s: any) => s.properties?.title?.trim().toLowerCase() === '01. recap'
+    )?.properties?.title;
     if (!recapTab) throw new Error("Could not find '01. Recap' tab to write back to.");
 
     // Resolve actual Master tab name case-insensitively
@@ -35,9 +35,9 @@ export async function POST(req: NextRequest) {
       spreadsheetId: masterId,
       fields: 'sheets.properties.title'
     });
-    const masterTab = masterMeta.data.sheets?.find(
-      (s: any) => s.properties.title.trim().toLowerCase() === 'master'
-    )?.properties.title;
+    const masterTab = (masterMeta.data?.sheets || []).find(
+      (s: any) => s.properties?.title?.trim().toLowerCase() === 'master'
+    )?.properties?.title;
     if (!masterTab) throw new Error("No tab named 'Master' found in the Master spreadsheet.");
 
     const masterData = await sheets.spreadsheets.values.get({
