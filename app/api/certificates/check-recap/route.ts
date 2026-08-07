@@ -9,7 +9,7 @@ export async function POST(req: NextRequest) {
     if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
     const { drive, sheets } = getGoogleClients(token);
-    
+
     let { sheetUrl } = await req.json().catch(() => ({ sheetUrl: '' }));
 
     let recapSpreadsheetId = '';
@@ -21,14 +21,12 @@ export async function POST(req: NextRequest) {
     } else {
       const templateId = process.env.TEMPLATE_SHEET_ID;
       if (!templateId) return NextResponse.json({ error: 'TEMPLATE_SHEET_ID not set.' }, { status: 500 });
-    
-      // Resolve folder FIRST, so search can be scoped to it
+
       const rootFolderId = await getOrCreateFolder(drive, PARENT_FOLDER_NAME);
-    
-      // Find or create Recap Sheet, scoped to the folder only
+
       const q = `name contains 'Recap SkillLab @' and mimeType='application/vnd.google-apps.spreadsheet' and trashed=false and '${rootFolderId}' in parents`;
       const res = await drive.files.list({ q, spaces: 'drive', fields: 'files(id, name, modifiedTime)', orderBy: 'modifiedTime desc' });
-      
+
       if (res.data.files && res.data.files.length > 0) {
         recapSpreadsheetId = res.data.files[0].id!;
       } else {
@@ -40,13 +38,12 @@ export async function POST(req: NextRequest) {
           }
         });
         recapSpreadsheetId = copyRes.data.id!;
-    
-        // Share the copy
+
         await drive.permissions.create({
           fileId: recapSpreadsheetId,
           requestBody: { role: 'reader', type: 'anyone' }
         });
-        
+
         const adminEmail = process.env.ADMIN_EMAIL;
         if (adminEmail) {
           await drive.permissions.create({
@@ -57,10 +54,26 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // Read the recap sheet
+    // Resolve the actual tab name case-insensitively (avoids hard-fail on casing)
+    const meta = await sheets.spreadsheets.get({
+      spreadsheetId: recapSpreadsheetId,
+      fields: 'sheets.properties.title'
+    });
+    const actualTab = meta.data.sheets?.find(
+      (s: any) => s.properties.title.trim().toLowerCase() === '01. recap'
+    )?.properties.title;
+
+    if (!actualTab) {
+      return NextResponse.json({ error: "No tab named '01. Recap' found in this spreadsheet." }, { status: 400 });
+    }
+
+    // UNFORMATTED_VALUE + SERIAL_NUMBER: dates come back as Sheets serial numbers,
+    // not locale-formatted strings — avoids ambiguous day/month string parsing.
     const sheetData = await sheets.spreadsheets.values.get({
       spreadsheetId: recapSpreadsheetId,
-      range: "'01. Recap'", // Ensure this tab exists
+      range: `'${actualTab}'`,
+      valueRenderOption: 'UNFORMATTED_VALUE',
+      dateTimeRenderOption: 'SERIAL_NUMBER'
     });
 
     const rows = sheetData.data.values;
@@ -69,44 +82,79 @@ export async function POST(req: NextRequest) {
     }
 
     const headers = rows[0].map((h: string) => h.toString().trim().toLowerCase());
-    const nameIdx = headers.findIndex((h: string) => ['student name', 'name'].includes(h));
-    const dateIdx = headers.findIndex((h: string) => h === 'date');
+    const nameIdx   = headers.findIndex((h: string) => ['student name', 'name'].includes(h));
+    const dateIdx   = headers.findIndex((h: string) => h === 'date');
     const courseIdx = headers.findIndex((h: string) => h === 'course');
-    const linkIdx = headers.findIndex((h: string) => h === 'link');
+    const linkIdx   = headers.findIndex((h: string) => h === 'link');
+    const statusIdx = headers.findIndex((h: string) => h === 'status');
 
     if (nameIdx === -1 || dateIdx === -1 || courseIdx === -1 || linkIdx === -1) {
       return NextResponse.json({ error: 'Required columns not found in recap.' }, { status: 400 });
+    }
+    if (statusIdx === -1) {
+      return NextResponse.json({ error: "Column 'Status' not found in recap." }, { status: 400 });
     }
 
     const pendingRows = [];
     for (let i = 1; i < rows.length; i++) {
       const row = rows[i];
-      const link = row[linkIdx] ? row[linkIdx].toString().trim() : '';
+      const status = row[statusIdx] ? row[statusIdx].toString().trim() : '';
+      const link   = row[linkIdx]   ? row[linkIdx].toString().trim()   : '';
+
+      // Gate: only rows explicitly marked ready by the sheet's own formula,
+      // and not already generated. The formula upstream already guarantees
+      // name/date/course are non-empty whenever status = 'Siap cetak'.
+      if (status !== 'Siap cetak') continue;
       if (link !== '') continue;
 
-      const name = row[nameIdx] ? row[nameIdx].toString().trim() : '';
-      const rawDate = row[dateIdx] ? row[dateIdx].toString().trim() : '';
-      const course = row[courseIdx] ? row[courseIdx].toString().trim() : '';
+      const name       = row[nameIdx]   ? row[nameIdx].toString().trim()   : '';
+      const rawDateCell = row[dateIdx];
+      const course     = row[courseIdx] ? row[courseIdx].toString().trim() : '';
 
-      if (!name && !rawDate && !course) continue;
+      let dateInfo: { y: number; m: number; d: number } | null = null;
+      let displayDate = '';
+
+      if (typeof rawDateCell === 'number' && rawDateCell > 1000) {
+        const ms = Date.UTC(1899, 11, 30) + rawDateCell * 86400000; // Sheets epoch
+        const dt = new Date(ms);
+        dateInfo = { y: dt.getUTCFullYear(), m: dt.getUTCMonth() + 1, d: dt.getUTCDate() };
+        displayDate = `${String(dateInfo.d).padStart(2, '0')}/${String(dateInfo.m).padStart(2, '0')}/${dateInfo.y}`;
+      } else if (rawDateCell) {
+        displayDate = rawDateCell.toString().trim();
+      }
 
       pendingRows.push({
         rowIndex: i + 1,
-        linkColLetter: String.fromCharCode(65 + linkIdx),
+        linkColLetter: colLetter(linkIdx + 1),
+        statusColLetter: colLetter(statusIdx + 1),
         name,
-        rawDate,
+        rawDate: displayDate,
+        dateY: dateInfo?.y ?? null,
+        dateM: dateInfo?.m ?? null,
+        dateD: dateInfo?.d ?? null,
         course
       });
     }
 
-    return NextResponse.json({ 
+    return NextResponse.json({
       url: `https://docs.google.com/spreadsheets/d/${recapSpreadsheetId}`,
-      rows: pendingRows, 
-      total: pendingRows.length 
+      rows: pendingRows,
+      total: pendingRows.length
     });
 
   } catch (error: any) {
     console.error('Check recap error:', error);
     return NextResponse.json({ error: error.message || 'Internal Server Error' }, { status: 500 });
   }
+}
+
+// Multi-letter safe column index -> letter (A, ..., Z, AA, AB, ...)
+function colLetter(col: number): string {
+  let letter = '';
+  while (col > 0) {
+    const mod = (col - 1) % 26;
+    letter = String.fromCharCode(65 + mod) + letter;
+    col = Math.floor((col - 1) / 26);
+  }
+  return letter;
 }
