@@ -194,9 +194,9 @@ async function logDuplicate(branchEmail: string, count: number, fileNames: strin
     spreadsheetId: masterId,
     fields: 'sheets.properties.title'
   });
-  const existingTab = meta.data.sheets?.find(
-    (s: any) => s.properties.title.trim().toLowerCase() === 'duplicates'
-  )?.properties.title;
+  const existingTab = (meta.data?.sheets || []).find(
+    (s: any) => s.properties?.title?.trim().toLowerCase() === 'duplicates'
+  )?.properties?.title;
 
   if (!existingTab) {
     await logSheets.spreadsheets.batchUpdate({
