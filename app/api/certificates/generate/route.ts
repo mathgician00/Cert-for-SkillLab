@@ -143,16 +143,12 @@ export async function POST(req: NextRequest) {
       } catch (err: any) {
         console.error(`Row ${row.rowIndex} error:`, err);
 
-        // Write to the Link column (not Status) — Status is formula-driven
         // off Link's string length (>=50 chars => 'Selesai'), so 'Gagal' here
         // is short enough to never trigger that condition.
         recapUpdates.push({
           range: `'${recapTab}'!${row.linkColLetter}${row.rowIndex}`,
           values: [['Gagal']]
         });
-
-        results.push({ rowIndex: row.rowIndex, error: err.message });
-      }
 
         results.push({ rowIndex: row.rowIndex, error: err.message });
       }
