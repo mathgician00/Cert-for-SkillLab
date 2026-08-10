@@ -405,7 +405,7 @@ export default function App() {
                               <td className="px-6 py-4">{row.rawDate}</td>
                               <td className="px-6 py-4">{row.course}</td>
                               <td className="px-6 py-4">
-                                {rowStatuses[row.rowIndex] === 'pending' && <span className="px-2 py-0.5 bg-slate-100 text-slate-500 rounded-full text-[10px] font-bold inline-flex items-center gap-1.5"><span className="w-1 h-1 bg-slate-400 rounded-full"></span>STANDBY</span>}
+                                {rowStatuses[row.rowIndex] === 'pending' && <span className="px-2 py-0.5 bg-slate-100 text-slate-500 rounded-full text-[10px] font-bold inline-flex items-center gap-1.5"><span className="w-1 h-1 bg-slate-400 rounded-full"></span>READY</span>}
                                 {rowStatuses[row.rowIndex] === 'processing' && <span className="px-2 py-0.5 bg-indigo-50 text-indigo-600 rounded-full text-[10px] font-bold inline-flex items-center gap-1.5"><span className="w-1 h-1 bg-indigo-500 rounded-full animate-pulse"></span>PROCESSING</span>}
                                 {rowStatuses[row.rowIndex] === 'done' && <span className="px-2 py-0.5 bg-emerald-50 text-emerald-600 rounded-full text-[10px] font-bold inline-flex items-center gap-1.5"><span className="w-1 h-1 bg-emerald-500 rounded-full"></span>DONE</span>}
                                 {rowStatuses[row.rowIndex] === 'error' && <span className="px-2 py-0.5 bg-red-50 text-red-600 rounded-full text-[10px] font-bold inline-flex items-center gap-1.5"><span className="w-1 h-1 bg-red-500 rounded-full"></span>ERROR</span>}
