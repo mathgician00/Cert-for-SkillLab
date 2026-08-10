@@ -287,7 +287,7 @@ export default function App() {
                 <div>
                   <h2 className="text-2xl font-bold text-slate-800 mb-2">Check Recap Sheet</h2>
                   <p className="text-sm text-slate-500 max-w-sm mx-auto leading-relaxed">
-                    It will only display participants marked "Siap cetak" from your recap sheet.
+                    We will only display participants marked "Siap cetak" from your recap sheet.
                   </p>
                 </div>
 
