@@ -257,7 +257,7 @@ export default function App() {
             <div>
               <h2 className="text-2xl font-bold text-slate-800 mb-2">Use Branch Google Account</h2>
               <p className="text-sm text-slate-500 max-w-sm mx-auto leading-relaxed">
-                Sign in to generate certificates.<br>Recaped and saved automatically to your Google Drive.</br>
+                Sign in to generate certificates. Recaped and saved to your Google Drive directly.
               </p>
             </div>
             <button
