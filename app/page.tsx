@@ -257,7 +257,7 @@ export default function App() {
             <div>
               <h2 className="text-2xl font-bold text-slate-800 mb-2">Use Branch Google Account</h2>
               <p className="text-sm text-slate-500 max-w-sm mx-auto leading-relaxed">
-                Sign in to generate certificates. Recaped and saved automatically to your Google Drive.
+                Sign in to generate certificates.<br>Recaped and saved automatically to your Google Drive.</br>
               </p>
             </div>
             <button
@@ -287,7 +287,7 @@ export default function App() {
                 <div>
                   <h2 className="text-2xl font-bold text-slate-800 mb-2">Check Recap Sheet</h2>
                   <p className="text-sm text-slate-500 max-w-sm mx-auto leading-relaxed">
-                    We will scan your Drive for a Recap Sheet and display participants marked "Siap cetak" that need certificates generated.
+                    It will only display participants marked "Siap cetak" from your recap sheet.
                   </p>
                 </div>
 
