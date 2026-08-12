@@ -34,16 +34,16 @@ export async function POST(req: NextRequest) {
         recapSpreadsheetId = matches[0].id!;
         multiple = matches.length > 1;
 
-        if (multiple) {
-          // Best-effort audit log — never blocks the main flow if it fails.
-          try {
-            const authRes = await drive.about.get({ fields: 'user' });
-            const branchEmail = authRes.data.user?.emailAddress || 'unknown';
-            await logDuplicate(branchEmail, matches.length, matches.map((f: any) => f.name).join(', '));
-          } catch (logErr: any) {
-            console.error('Duplicate log failed (non-fatal):', logErr.message);
-          }
-        }
+        // if (multiple) {
+        //   // Best-effort audit log — never blocks the main flow if it fails.
+        //   try {
+        //     const authRes = await drive.about.get({ fields: 'user' });
+        //     const branchEmail = authRes.data.user?.emailAddress || 'unknown';
+        //     await logDuplicate(branchEmail, matches.length, matches.map((f: any) => f.name).join(', '));
+        //   } catch (logErr: any) {
+        //     console.error('Duplicate log failed (non-fatal):', logErr.message);
+        //   }
+        // }
       } else {
         const copyRes = await drive.files.copy({
           fileId: templateId,
@@ -65,6 +65,17 @@ export async function POST(req: NextRequest) {
             fileId: recapSpreadsheetId,
             requestBody: { role: 'writer', type: 'user', emailAddress: adminEmail }
           });
+        }
+
+        // Log every copy event (first-time or repeat) so patterns of
+        // repeated re-copying by the same branch can be spotted via
+        // conditional formatting / pivot on the Duplicates tab.
+        try {
+          const authRes = await drive.about.get({ fields: 'user' });
+          const branchEmail = authRes.data.user?.emailAddress || 'unknown';
+          await logDuplicate(branchEmail, 1, 'Recap SkillLab @branch (new copy)');
+        } catch (logErr: any) {
+          console.error('Copy-event log failed (non-fatal):', logErr.message);
         }
       }
     }
