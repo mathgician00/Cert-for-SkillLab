@@ -23,7 +23,8 @@ export function getServiceAccountSheetsClient() {
 }
 
 export async function getOrCreateFolder(drive: any, folderName: string, parentId?: string) {
-  const q = `name='${folderName}' and mimeType='application/vnd.google-apps.folder' and trashed=false${parentId ? ` and '${parentId}' in parents` : ''}`;
+  const safeName = folderName.replace(/'/g, "\\'");
+  const q = `name='${safeName}' and mimeType='application/vnd.google-apps.folder' and trashed=false${parentId ? ` and '${parentId}' in parents` : ''}`;
   const res = await drive.files.list({ q, spaces: 'drive', fields: 'files(id, name)' });
   
   if (res.data.files && res.data.files.length > 0) {
