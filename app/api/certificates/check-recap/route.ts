@@ -195,14 +195,18 @@ function colLetter(col: number): string {
 // Records to the Master sheet's Duplicates tab whenever a branch has more
 // than one "Recap SkillLab @" file in their folder — lets the admin follow
 // up and consolidate. Creates the tab on first use.
+// Records to the dedicated Log sheet's Duplicates tab whenever the app
+// creates a new copy of the template for a branch (first-time or repeat) —
+// lets the admin spot patterns of repeated re-copying via conditional
+// formatting / pivot on the sheet. Creates the tab on first use.
 async function logDuplicate(branchEmail: string, count: number, fileNames: string) {
-  const masterId = process.env.MASTER_SHEET_ID;
-  if (!masterId) return;
+  const logSheetId = process.env.LOG_SHEET_ID;
+  if (!logSheetId) return;
 
   const logSheets = getServiceAccountSheetsClient();
 
   const meta = await logSheets.spreadsheets.get({
-    spreadsheetId: masterId,
+    spreadsheetId: logSheetId,
     fields: 'sheets.properties.title'
   });
   const existingTab = (meta.data?.sheets || []).find(
@@ -211,11 +215,11 @@ async function logDuplicate(branchEmail: string, count: number, fileNames: strin
 
   if (!existingTab) {
     await logSheets.spreadsheets.batchUpdate({
-      spreadsheetId: masterId,
+      spreadsheetId: logSheetId,
       requestBody: { requests: [{ addSheet: { properties: { title: 'Duplicates' } } }] }
     });
     await logSheets.spreadsheets.values.append({
-      spreadsheetId: masterId,
+      spreadsheetId: logSheetId,
       range: 'Duplicates',
       valueInputOption: 'USER_ENTERED',
       requestBody: { values: [['Timestamp', 'Branch Email', 'File Count', 'File Names']] }
@@ -223,7 +227,7 @@ async function logDuplicate(branchEmail: string, count: number, fileNames: strin
   }
 
   await logSheets.spreadsheets.values.append({
-    spreadsheetId: masterId,
+    spreadsheetId: logSheetId,
     range: 'Duplicates',
     valueInputOption: 'USER_ENTERED',
     requestBody: { values: [[new Date().toISOString(), branchEmail, count, fileNames]] }
