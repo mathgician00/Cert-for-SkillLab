@@ -166,13 +166,16 @@ export async function POST(req: NextRequest) {
     // already-successful rows to an error state.
     if (logEntries.length > 0) {
       try {
-        const logSheets = getServiceAccountSheetsClient();
-        await logSheets.spreadsheets.values.append({
-          spreadsheetId: masterId,
-          range: 'CertLog',
-          valueInputOption: 'USER_ENTERED',
-          requestBody: { values: logEntries }
-        });
+        const logSheetId = process.env.LOG_SHEET_ID;
+        if (logSheetId) {
+          const logSheets = getServiceAccountSheetsClient();
+          await logSheets.spreadsheets.values.append({
+            spreadsheetId: logSheetId,
+            range: 'CertLog',
+            valueInputOption: 'USER_ENTERED',
+            requestBody: { values: logEntries }
+          });
+        }
       } catch (logErr: any) {
         console.error('Log write failed (non-fatal):', logErr.message);
       }
