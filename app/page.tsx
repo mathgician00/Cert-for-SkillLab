@@ -280,10 +280,10 @@ export default function App() {
 
               {process.env.NEXT_PUBLIC_PANDUAN_URL && (
                 
-                  href={process.env.NEXT_PUBLIC_PANDUAN_URL}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="text-xs text-indigo-600 hover:text-indigo-700 font-medium transition-colors"
+                <a href={process.env.NEXT_PUBLIC_PANDUAN_URL}
+                   target="_blank"
+                   rel="noreferrer"
+                   className="text-xs text-indigo-600 hover:text-indigo-700 font-medium transition-colors"
                 >
                   First time? Click for Panduan
                 </a>
