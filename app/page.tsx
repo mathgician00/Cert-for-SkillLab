@@ -261,7 +261,7 @@ export default function App() {
               </p>
             </div>
             
-            <div className="flex flex-col items-center gap-3">
+            <div className="flex flex-row items-center justify-center gap-3">
               <button
                 onClick={handleLogin}
                 disabled={isLoggingIn}
@@ -279,14 +279,23 @@ export default function App() {
               </button>
 
               {process.env.NEXT_PUBLIC_PANDUAN_URL && (
-                
-                <a href={process.env.NEXT_PUBLIC_PANDUAN_URL}
-                   target="_blank"
-                   rel="noreferrer"
-                   className="text-xs text-indigo-600 hover:text-indigo-700 font-medium transition-colors"
-                >
-                  First time? Click for Panduan
-                </a>
+                <div className="relative group">
+                  
+                  <a href={process.env.NEXT_PUBLIC_PANDUAN_URL}
+                     target="_blank"
+                     rel="noreferrer"
+                     className="flex items-center justify-center w-9 h-9 bg-white border border-slate-300 rounded-md shadow-sm hover:bg-slate-50 transition-colors"
+                  >
+                    <svg viewBox="0 0 24 24" className="w-4 h-4 text-indigo-600" fill="none" stroke="currentColor" strokeWidth="2">
+                      <circle cx="12" cy="12" r="10" />
+                      <line x1="12" y1="16" x2="12" y2="12" />
+                      <line x1="12" y1="8" x2="12.01" y2="8" />
+                    </svg>
+                  </a>
+                  <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 whitespace-nowrap bg-slate-800 text-white text-xs px-2.5 py-1.5 rounded-md opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+                    Click for Panduan
+                  </div>
+                </div>
               )}
             </div>
       
@@ -302,7 +311,7 @@ export default function App() {
                 <div>
                   <h2 className="text-2xl font-bold text-slate-800 mb-2">Check Recap Sheet</h2>
                   <p className="text-sm text-slate-500 max-w-sm mx-auto leading-relaxed">
-                    We will only display participants marked "Siap cetak" from your recap sheet.
+                    We only display participants marked "Siap cetak" from your recap sheet.
                   </p>
                 </div>
 
@@ -472,7 +481,7 @@ export default function App() {
       </main>
       {process.env.NEXT_PUBLIC_WHATSAPP_NUMBER && (
         
-        <a href={`https://wa.me/${process.env.NEXT_PUBLIC_WHATSAPP_NUMBER}?text=${encodeURIComponent('Hai Mr Krishna. Mau tanya ...')}`}
+        <a href={`https://wa.me/${process.env.NEXT_PUBLIC_WHATSAPP_NUMBER}?text=${encodeURIComponent('Hai Mr Krishna. Mau tanya soal generate sertif nih.')}`}
            target="_blank"
            rel="noreferrer"
            className="fixed bottom-6 right-6 z-50 flex items-center justify-center w-14 h-14 bg-[#25D366] rounded-full shadow-lg hover:scale-105 transition-transform"
