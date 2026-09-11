@@ -319,26 +319,26 @@ export default function App() {
                    <div className="w-full max-w-md flex flex-col gap-3">
                      <label className="text-xs font-semibold text-slate-700 text-left uppercase tracking-wider">Custom Sheet URL</label>
                      <div className="flex gap-2">
-                       <input
-                         type="text"
-                         className="flex-1 bg-slate-50 border border-slate-300 text-slate-900 text-sm rounded-md focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full px-3 py-2"
+                       <input 
+                         type="text" 
+                         className="flex-1 bg-slate-50 border border-slate-300 text-slate-900 text-sm rounded-md focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full px-3 py-2" 
                          placeholder="https://docs.google.com/spreadsheets/d/..."
                          value={overrideUrl}
                          onChange={e => setOverrideUrl(e.target.value)}
                        />
-                       <button
+                       <button 
                          onClick={() => checkRecapSheet(overrideUrl)}
                          disabled={checkingRecap || !overrideUrl}
-                         className="bg-slate-900 text-white hover:bg-slate-800 font-medium rounded-md text-sm px-5 py-2 disabled:opacity-50 transition-colors"
+                         className="bg-slate-900 text-white hover:bg-slate-800 font-medium rounded-md text-sm px-5 py-2 disabled:opacity-50 transition-colors cursor-pointer disabled:cursor-not-allowed"
                        >
                          {checkingRecap ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Load'}
                        </button>
                      </div>
-                     <button onClick={() => setShowOverride(false)} className="text-xs text-slate-500 hover:text-slate-800 self-start transition-colors">Cancel</button>
+                     <button onClick={() => setShowOverride(false)} className="text-xs text-slate-500 hover:text-slate-800 self-start transition-colors cursor-pointer">Cancel</button>
                    </div>
                 ) : (
                   <div className="flex flex-col items-center gap-4">
-                    <button
+                    <button 
                       onClick={() => checkRecapSheet()}
                       disabled={checkingRecap}
                       className="bg-slate-900 text-white hover:bg-slate-800 font-medium rounded-md text-sm px-8 py-3 disabled:opacity-50 transition-colors shadow-sm flex items-center gap-2 cursor-pointer disabled:cursor-not-allowed"
@@ -346,7 +346,7 @@ export default function App() {
                       {checkingRecap && <Loader2 className="w-4 h-4 animate-spin" />}
                       {checkingRecap ? 'Checking...' : 'Check Recap Sheet'}
                     </button>
-                    <button onClick={() => setShowOverride(true)} className="text-xs text-indigo-600 hover:text-indigo-700 font-medium transition-colors">
+                    <button onClick={() => setShowOverride(true)} className="text-xs text-indigo-600 hover:text-indigo-700 font-medium transition-colors cursor-pointer">
                       Use a specific sheet URL instead
                     </button>
                   </div>
