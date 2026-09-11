@@ -229,7 +229,7 @@ export default function App() {
               <div className="w-9 h-9 bg-slate-200 rounded-full flex items-center justify-center">
                 <span className="text-slate-600 text-xs font-bold">{user.email?.[0].toUpperCase()}</span>
               </div>
-              <button onClick={handleLogout} className="ml-2 text-slate-400 hover:text-slate-700 transition-colors">
+              <button onClick={handleLogout} className="ml-2 text-slate-400 hover:text-slate-700 transition-colors cursor-pointer">
                 <LogOut className="w-4 h-4" />
               </button>
             </div>
@@ -265,7 +265,7 @@ export default function App() {
               <button
                 onClick={handleLogin}
                 disabled={isLoggingIn}
-                className="gsi-material-button relative overflow-hidden bg-white text-slate-700 font-medium text-sm border border-slate-300 rounded-md hover:bg-slate-50 transition-colors shadow-sm disabled:opacity-70 flex items-center pr-4"
+                className="gsi-material-button relative overflow-hidden bg-white text-slate-700 font-medium text-sm border border-slate-300 rounded-md hover:bg-slate-50 transition-colors shadow-sm disabled:opacity-70 flex items-center pr-4 cursor-pointer disabled:cursor-not-allowed"
               >
                 <div className="p-3 bg-white">
                   <svg version="1.1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" className="w-5 h-5">
@@ -341,7 +341,7 @@ export default function App() {
                     <button
                       onClick={() => checkRecapSheet()}
                       disabled={checkingRecap}
-                      className="bg-slate-900 text-white hover:bg-slate-800 font-medium rounded-md text-sm px-8 py-3 disabled:opacity-50 transition-colors shadow-sm flex items-center gap-2"
+                      className="bg-slate-900 text-white hover:bg-slate-800 font-medium rounded-md text-sm px-8 py-3 disabled:opacity-50 transition-colors shadow-sm flex items-center gap-2 cursor-pointer disabled:cursor-not-allowed"
                     >
                       {checkingRecap && <Loader2 className="w-4 h-4 animate-spin" />}
                       {checkingRecap ? 'Checking...' : 'Check Recap Sheet'}
@@ -367,7 +367,7 @@ export default function App() {
                    </div>
                    <button
                      onClick={() => { setTotalPending(-1); setSheetUrl(''); setPendingRows([]); setMultipleFound(false); }}
-                     className="text-xs bg-slate-100 border border-slate-200 text-slate-700 px-3 py-1.5 rounded-md hover:bg-slate-200 transition-colors font-medium"
+                     className="text-xs bg-slate-100 border border-slate-200 text-slate-700 px-3 py-1.5 rounded-md hover:bg-slate-200 transition-colors font-medium cursor-pointer disabled:cursor-not-allowed"
                    >
                      Reset
                    </button>
@@ -403,7 +403,7 @@ export default function App() {
                       <button
                         onClick={() => checkRecapSheet(sheetUrl)}
                         disabled={checkingRecap || generating}
-                        className="text-slate-400 hover:text-slate-600 transition-colors disabled:opacity-50"
+                        className="text-slate-400 hover:text-slate-600 transition-colors disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
                         title="Refresh"
                       >
                         <RefreshCw className={`w-4 h-4 ${checkingRecap ? 'animate-spin' : ''}`} />
@@ -466,7 +466,7 @@ export default function App() {
                       <button
                         onClick={handleGenerate}
                         disabled={generating || progress === 100}
-                        className="bg-slate-900 text-white hover:bg-slate-800 font-medium rounded-md text-sm px-5 py-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm flex items-center gap-2"
+                        className="bg-slate-900 text-white hover:bg-slate-800 font-medium rounded-md text-sm px-5 py-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm flex items-center gap-2 cursor-pointer"
                       >
                         {generating && <Loader2 className="w-4 h-4 animate-spin" />}
                         {progress === 100 ? 'Generated' : 'Generate Certificates'}
