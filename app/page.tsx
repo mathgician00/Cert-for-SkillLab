@@ -286,10 +286,9 @@ export default function App() {
                      rel="noreferrer"
                      className="flex items-center justify-center w-9 h-9 bg-[#10af13] border border-[#0d8f10] rounded-md shadow-sm hover:bg-[#0d8f10] transition-colors animate-pulse-slow cursor-pointer"
                   >
-                    <svg viewBox="0 0 24 24" className="w-4 h-4 text-white" fill="none" stroke="currentColor" strokeWidth="2">
-                      <circle cx="12" cy="12" r="10" />
-                      <line x1="12" y1="16" x2="12" y2="12" />
-                      <line x1="12" y1="8" x2="12.01" y2="8" />
+                    <svg viewBox="0 0 24 24" className="w-6 h-6 text-white" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
+                      <line x1="12" y1="17" x2="12.01" y2="17"/>
                     </svg>
                   </a>
                   <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 whitespace-nowrap bg-slate-800 text-white text-xs px-2.5 py-1.5 rounded-md opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
