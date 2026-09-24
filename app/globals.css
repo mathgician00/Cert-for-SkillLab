@@ -5,5 +5,5 @@
 }
 
 .animate-pulse-slow {
-  animation: pulse-slow 0.5s ease-in-out infinite;
+  animation: pulse-slow 1.5s ease-in-out infinite;
 }
