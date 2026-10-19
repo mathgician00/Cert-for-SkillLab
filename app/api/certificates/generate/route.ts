@@ -5,6 +5,19 @@ const PARENT_FOLDER_NAME = 'SkillLab Certificate';
 const DAYS   = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
 const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
 
+async function appendWithRetry(client: any, params: any, attempts = 3) {
+  for (let i = 0; i < attempts; i++) {
+    try {
+      return await client.spreadsheets.values.append(params);
+    } catch (err: any) {
+      const status = err?.code || err?.response?.status;
+      const retryable = status === 429 || status === 500 || status === 503;
+      if (!retryable || i === attempts - 1) throw err;
+      await new Promise(r => setTimeout(r, 500 * 2 ** i + Math.random() * 300));
+    }
+  }
+}
+
 export async function POST(req: NextRequest) {
   try {
     const token = req.headers.get('Authorization')?.split('Bearer ')[1];
@@ -169,10 +182,11 @@ export async function POST(req: NextRequest) {
         const logSheetId = process.env.LOG_SHEET_ID;
         if (logSheetId) {
           const logSheets = getServiceAccountSheetsClient();
-          await logSheets.spreadsheets.values.append({
+          await appendWithRetry(logSheets, {
             spreadsheetId: logSheetId,
             range: 'CertLog',
             valueInputOption: 'USER_ENTERED',
+            insertDataOption: 'INSERT_ROWS',
             requestBody: { values: logEntries }
           });
         }
